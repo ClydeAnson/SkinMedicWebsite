@@ -91,13 +91,11 @@ $showAdminPopup = isset($_GET['admin']); // ?admin=true triggers admin popup
 
      <form id="loginForm">
         <div class="input-group">
-          <label for="email">Email:</label>
-          <input type="text" id="email" name="email" required>
+          <input type="email" name="email" placeholder="Email" required>
         </div>
         <div class="input-group">
-          <label for="password">Password:</label>
-          <input type="password" id="password" name="password" required>
-        </div>
+          <input type="password" name="password" placeholder="Password" required>
+        </div> 
 
         <button type="submit" class="login-btn">Login</button>
         <a href="#" class="create-link" onclick="openSignupPopup()">Create an Account</a>
@@ -124,18 +122,16 @@ $showAdminPopup = isset($_GET['admin']); // ?admin=true triggers admin popup
 
      <form id="adminForm">
         <div class="input-group">
-          <label for="admin_email">Email:</label>
-          <input type="text" id="admin_email" name="admin_email" required>
+          <input type="email" name="email" placeholder="Email" required>
         </div>
         <div class="input-group">
-          <label for="admin_password">Password:</label>
-          <input type="password" id="admin_password" name="admin_password" required>
+          <input type="password" name="password" placeholder="Password" required>
         </div>
 
         <button type="submit" class="login-btn">Login as Admin</button>
       </form>
 
-      <button class="back-btn" onclick="closeAdminPopup(); openPopup();">Back to Client Login</button>
+      <button class="back-btn" onclick="closeAdminPopup(); openPopup();">← Back to Client Login</button>
     </div>
   </div>
 </div>
@@ -156,180 +152,43 @@ $showAdminPopup = isset($_GET['admin']); // ?admin=true triggers admin popup
 
      <form id="signupForm">
         <div class="input-group">
-          <label for="fullname">Full Name:</label>
-          <input type="text" id="fullname" name="fullname" required>
+          <input type="email" name="email" placeholder="Email" required>
         </div>
         <div class="input-group">
-          <label for="signup_email">Email:</label>
-          <input type="email" id="signup_email" name="signup_email" required>
+          <input type="text" name="firstname" placeholder="Firstname" required>
         </div>
         <div class="input-group">
-          <label for="signup_password">Password:</label>
-          <input type="password" id="signup_password" name="signup_password" required>
+          <input type="text" name="lastname" placeholder="Lastname" required>
         </div>
         <div class="input-group">
-          <label for="confirm_password">Confirm Password:</label>
-          <input type="password" id="confirm_password" name="confirm_password" required>
+          <input type="password" name="password" placeholder="Password" required>
+        </div>
+        <div class="input-group">
+          <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+        </div>
+        <div class="input-group">
+          <select name="gender" required>
+              <option value="">Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="others">Others</option>
+            </select>
+        </div>
+        <div class="input-group">
+          <input type="text" name="address" placeholder="Address" required>
+        </div>
+        <div class="input-group">
+          <input type="text" name="phone_no" placeholder="Phone_No" required>
         </div>
 
         <button type="submit" class="login-btn">Sign Up</button>
       </form>
 
-      <button class="back-btn" onclick="closeSignupPopup(); openPopup();">Back to Login</button>
+      <button class="back-btn" onclick="closeSignupPopup(); openPopup();">← Back to Login</button>
     </div>
   </div>
 </div>
 
-<style>
-/* Existing styles remain the same */
-.popup {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  justify-content: center; align-items: center;
-  z-index: 9999;
-  font-family: 'Poppins', sans-serif;
-}
-
-.popup-content {
-  display: flex;
-  background: #f3e8df;
-  border-radius: 18px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
-  overflow: hidden;
-  width: 880px;
-  max-width: 95%;
-  min-height: 480px;
-}
-
-.popup-left {
-  flex: 1.1;
-  background: #d7c4b4;
-  color: #4d4d4dff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  text-align: center;
-}
-
-.popup-left .logo {
-  width: 120px;
-  margin-bottom: 15px;
-}
-
-.popup-right {
-  flex: 1.2;
-  padding: 40px 80px 30px;
-  position: relative;
-  background: white;
-}
-
-.close {
-  position: absolute;
-  right: 25px;
-  top: 20px;
-  font-size: 24px;
-  cursor: pointer;
-  color: #999;
-}
-
-.input-group {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 20px;
-}
-
-.input-group label {
-  width: 95px;
-  text-align: left;
-  color: #2f2a27;
-  font-weight: 500;
-}
-
-.input-group input {
-  width: 300px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid #252525ff;
-  font-size: 15px;
-  height: 15px;
-}
-
-.login-btn {
-  background: #80a833;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.2s;
-  width: 100%;
-  margin-top: 15px;
-}
-
-.login-btn:hover {
-  background: #6b8f28;
-}
-
-.create-link {
-  display: block;
-  text-align: center;
-  margin-top: 10px;
-  font-size: 14px;
-  color: #80a833;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.create-link:hover {
-  text-decoration: underline;
-}
-
-.admin-btn {
-  background: none;
-  border: none;
-  color: #555;
-  font-size: 14px;
-  text-align: right;
-  cursor: pointer;
-  position: absolute;
-  bottom: 25px;
-  right: 40px;
-}
-
-.admin-btn:hover {
-  color: #80a833;
-}
-
-.back-btn {
-  background: none;
-  border: 1px solid #80a833;
-  color: #80a833;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
-  position: absolute;
-  bottom: 25px;
-  right: 40px;
-}
-
-.back-btn:hover {
-  background: #80a833;
-  color: white;
-}
-
-.error-message {
-  font-size: 14px;
-}
-</style>
 
 <script>
 function closePopup() {
