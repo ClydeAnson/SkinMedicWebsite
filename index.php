@@ -22,7 +22,8 @@ if (isset($_SESSION['email']) && isset($_SESSION['role'])) {
             exit();
     }
 }
-$showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
+$showLoginPopup = isset($_GET['login']); // ?login=true triggers client popup
+$showAdminPopup = isset($_GET['admin']); // ?admin=true triggers admin popup
 
 ?>
 <!doctype html>
@@ -60,7 +61,7 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
     <header class="topbar">
       <div class="top-actions">
       </div>
-      <a class="login-pill" a href="index.php?login=true">Log in/Sign up</a>
+      <a class="login-pill" href="index.php?login=true">Log in/Sign up</a>
     </header>
 
     <section id="book-appointment" class="hero">
@@ -74,11 +75,11 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
       </div>
     </section>
 
-<!-- LOGIN POPUP -->
+<!-- LOGIN POPUP (Client/Patient Only) -->
 <div id="loginPopup" class="popup">
   <div class="popup-content">
     <div class="popup-left">
-      <img src="skinmedic-logo.png" alt="Skin Medic Logo" class="logo">
+      <img src="skintransparent.png" alt="Skin Medic Logo" class="logo">
       <h2>Skin Medic</h2>
       <p>A Complete Skin Care Clinic</p>
     </div>
@@ -86,9 +87,9 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
     <div class="popup-right">
       <span class="close" onclick="closePopup()">&times;</span>
       <h3>Client Login</h3>
+      <div id="loginError" class="error-message" style="color: red; margin-bottom: 10px;"></div>
 
-     <form action="login_signup.php" method="POST">
-
+     <form id="loginForm">
         <div class="input-group">
           <label for="email">Email:</label>
           <input type="text" id="email" name="email" required>
@@ -99,21 +100,95 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
         </div>
 
         <button type="submit" class="login-btn">Login</button>
-        <button type="button" class="create-btn">Create an Account</button>
+        <a href="#" class="create-link" onclick="openSignupPopup()">Create an Account</a>
       </form>
 
-      <button class="admin-btn">Are you an admin?</button>
+      <button class="admin-btn" onclick="openAdminPopup()">Are you an admin?</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN POPUP (Doctor/Staff Only) -->
+<div id="adminPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-left">
+      <img src="skintransparent.png" alt="Skin Medic Logo" class="logo">
+      <h2>Skin Medic</h2>
+      <p>Admin Access</p>
+    </div>
+
+    <div class="popup-right">
+      <span class="close" onclick="closeAdminPopup()">&times;</span>
+      <h3>Admin Login</h3>
+      <div id="adminError" class="error-message" style="color: red; margin-bottom: 10px;"></div>
+
+     <form id="adminForm">
+        <div class="input-group">
+          <label for="admin_email">Email:</label>
+          <input type="text" id="admin_email" name="admin_email" required>
+        </div>
+        <div class="input-group">
+          <label for="admin_password">Password:</label>
+          <input type="password" id="admin_password" name="admin_password" required>
+        </div>
+
+        <button type="submit" class="login-btn">Login as Admin</button>
+      </form>
+
+      <button class="back-btn" onclick="closeAdminPopup(); openPopup();">Back to Client Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP POPUP (Client/Patient Only) -->
+<div id="signupPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-left">
+      <img src="skintransparent.png" alt="Skin Medic Logo" class="logo">
+      <h2>Skin Medic</h2>
+      <p>Join Our Community</p>
+    </div>
+
+    <div class="popup-right">
+      <span class="close" onclick="closeSignupPopup()">&times;</span>
+      <h3>Create an Account</h3>
+      <div id="signupError" class="error-message" style="color: red; margin-bottom: 10px;"></div>
+
+     <form id="signupForm">
+        <div class="input-group">
+          <label for="fullname">Full Name:</label>
+          <input type="text" id="fullname" name="fullname" required>
+        </div>
+        <div class="input-group">
+          <label for="signup_email">Email:</label>
+          <input type="email" id="signup_email" name="signup_email" required>
+        </div>
+        <div class="input-group">
+          <label for="signup_password">Password:</label>
+          <input type="password" id="signup_password" name="signup_password" required>
+        </div>
+        <div class="input-group">
+          <label for="confirm_password">Confirm Password:</label>
+          <input type="password" id="confirm_password" name="confirm_password" required>
+        </div>
+
+        <button type="submit" class="login-btn">Sign Up</button>
+      </form>
+
+      <button class="back-btn" onclick="closeSignupPopup(); openPopup();">Back to Login</button>
     </div>
   </div>
 </div>
 
 <style>
+/* Existing styles remain the same */
 .popup {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   background: rgba(0,0,0,0.5);
-  display: flex; justify-content: center; align-items: center;
+  display: none;
+  justify-content: center; align-items: center;
   z-index: 9999;
   font-family: 'Poppins', sans-serif;
 }
@@ -124,15 +199,15 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
   border-radius: 18px;
   box-shadow: 0 6px 14px rgba(0,0,0,0.25);
   overflow: hidden;
-  width: 880px; /* increased from 750px */
+  width: 880px;
   max-width: 95%;
-  min-height: 480px; /* slightly taller for breathing room */
+  min-height: 480px;
 }
 
 .popup-left {
   flex: 1.1;
   background: #d7c4b4;
-  color: #2f2a27;
+  color: #4d4d4dff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -162,34 +237,27 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
   color: #999;
 }
 
-.login-form {
-  display: flex;
-  flex-direction: column;
-  margin-top: 25px;
-  gap: 22px;
-}
-
 .input-group {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 18px;
+  gap: 20px;
 }
 
 .input-group label {
   width: 95px;
-  text-align: right;
+  text-align: left;
   color: #2f2a27;
   font-weight: 500;
 }
 
 .input-group input {
-  flex: 1;
+  width: 300px;
   padding: 12px 14px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #252525ff;
   font-size: 15px;
-  max-width: 320px;
+  height: 15px;
 }
 
 .login-btn {
@@ -202,27 +270,25 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
   cursor: pointer;
   transition: 0.2s;
   width: 100%;
+  margin-top: 15px;
 }
 
 .login-btn:hover {
   background: #6b8f28;
 }
 
-.create-btn {
-  background: none;
-  border: 1px solid #80a833;
+.create-link {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
   color: #80a833;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 16px;
+  text-decoration: none;
   cursor: pointer;
-  transition: 0.2s;
-  width: 100%;
 }
 
-.create-btn:hover {
-  background: #80a833;
-  color: white;
+.create-link:hover {
+  text-decoration: underline;
 }
 
 .admin-btn {
@@ -240,15 +306,150 @@ $showLoginPopup = isset($_GET['login']); // ?login in URL triggers the popup
 .admin-btn:hover {
   color: #80a833;
 }
+
+.back-btn {
+  background: none;
+  border: 1px solid #80a833;
+  color: #80a833;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  position: absolute;
+  bottom: 25px;
+  right: 40px;
+}
+
+.back-btn:hover {
+  background: #80a833;
+  color: white;
+}
+
+.error-message {
+  font-size: 14px;
+}
 </style>
 
 <script>
 function closePopup() {
   document.getElementById('loginPopup').style.display = 'none';
+  document.getElementById('loginError').textContent = '';
+}
+
+function openPopup() {
+  document.getElementById('loginPopup').style.display = 'flex';
+}
+
+function closeAdminPopup() {
+  document.getElementById('adminPopup').style.display = 'none';
+  document.getElementById('adminError').textContent = '';
+}
+
+function openAdminPopup() {
+  closePopup();
+  document.getElementById('adminPopup').style.display = 'flex';
+}
+
+function closeSignupPopup() {
+  document.getElementById('signupPopup').style.display = 'none';
+  document.getElementById('signupError').textContent = '';
+}
+
+function openSignupPopup() {
+  closePopup();
+  document.getElementById('signupPopup').style.display = 'flex';
+}
+
+// AJAX for Client Login
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  formData.append('login', '1');
+  fetch('skinmedic.php', {
+    method: 'POST',
+    body: formData,
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      closePopup();
+      window.location.href = data.redirect;
+    } else {
+      document.getElementById('loginError').textContent = data.error;
+    }
+  })
+  .catch(() => {
+    document.getElementById('loginError').textContent = 'An error occurred. Please try again.';
+  });
+});
+
+// AJAX for Admin Login
+document.getElementById('adminForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  formData.append('admin_login', '1');
+  fetch('admin_login.php', {
+    method: 'POST',
+    body: formData,
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      closeAdminPopup();
+      window.location.href = data.redirect;
+    } else {
+      document.getElementById('adminError').textContent = data.error;
+    }
+  })
+  .catch(() => {
+    document.getElementById('adminError').textContent = 'Only an admin can access this. Please try again.';
+  });
+});
+
+// AJAX for Signup
+document.getElementById('signupForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const password = document.getElementById('signup_password').value;
+  const confirmPassword = document.getElementById('confirm_password').value;
+  if (password !== confirmPassword) {
+    document.getElementById('signupError').textContent = 'Passwords do not match.';
+    return;
+  }
+  const formData = new FormData(this);
+  formData.append('signup', '1');
+  const fullname = document.getElementById('fullname').value.split(' ');
+  formData.append('firstName', fullname[0] || '');
+  formData.append('lastName', fullname.slice(1).join(' ') || '');
+  formData.append('role', 'patient');
+  fetch('skinmedic.php', {
+    method: 'POST',
+    body: formData,
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      closeSignupPopup();
+      window.location.href = data.redirect;
+    } else {
+      document.getElementById('signupError').textContent = data.error;
+    }
+  })
+  .catch(() => {
+    document.getElementById('signupError').textContent = 'An error occurred. Please try again.';
+  });
+});
+
+// Auto-open popups based on URL
+if (window.location.search.includes('login=true')) {
+  document.getElementById('loginPopup').style.display = 'flex';
+} else if (window.location.search.includes('admin=true')) {
+  document.getElementById('adminPopup').style.display = 'flex';
 }
 </script>
-
-
 
     <!-- AR card -->
     <section id="ar-skin-analysis" class="ar-card">
@@ -322,76 +523,4 @@ function closePopup() {
             <h3>Product <?= $i+1 ?></h3>
           </article>
         <?php endfor; ?>
-      </div>
-
-      <div class="center-btn">
-        <a class="view-all" href="#">View All Products</a>
-      </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section id="reviews" class="section reviews-section">
-      <div class="reviews-panel">
-        <h3 class="kicker">TESTIMONIALS</h3>
-        <h2 class="section-title">Client Stories</h2>
-        <p class="small">Hear from those who have experienced transformative results</p>
-
-        <div class="reviews-grid">
-          <?php
-          $people = [
-            ['name'=>'Maria Santos','text'=>'The anti-aging facial treatment exceeded my expectations!'],
-            ['name'=>'Sarah Chen','text'=>'The Vitamin C serum is incredible!'],
-            ['name'=>'John Reyes','text'=>'Amazing results from the Pico laser treatment!']
-          ];
-          foreach($people as $p): ?>
-            <div class="review-card">
-              <div class="stars">★★★★★</div>
-              <p class="review-text">"<?php echo $p['text']; ?>"</p>
-              <div class="author">
-                <span class="avatar"><?php echo strtoupper($p['name'][0]); ?></span>
-                <div>
-                  <strong><?php echo $p['name']; ?></strong>
-                  <div class="role">Treatment</div>
-                </div>
-              </div>
-            </div>
-          <?php endforeach; ?>
-        </div>
-
-        <div class="center-btn"><a class="outline-btn" href="#">Read More Stories</a></div>
-      </div>
-    </section>
-
-    <!-- Locations -->
-    <section id="locations" class="section locations-section">
-      <div class="section-header center">
-        <h2 class="section-title">Our Clinic Locations</h2>
-        <p class="section-sub">Visit any of our convenient locations across Cavite for premium skincare treatments and consultations.</p>
-      </div>
-
-      <div class="location-card">
-        <div class="loc-left">
-          <h3>Skin Medic - Imus Branch <span class="badge">Premium Location</span></h3>
-          <div class="loc-meta">
-            <p><strong>Address:</strong> 123 General Trias Drive, Imus City, Cavite 4103</p>
-            <p><strong>Phone:</strong> +63 46 123 4567</p>
-            <p><strong>Hours:</strong> Mon-Fri: 9:00 AM - 7:00 PM</p>
-          </div>
-          <div class="loc-actions">
-            <a class="directions" href="#">Get Directions</a>
-            <a class="call" href="tel:+63461234567">Call Now</a>
-          </div>
-        </div>
-        <div class="loc-right">
-          <img src="https://images.unsplash.com/photo-1600180758890-cc2f27b46f1b?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=3a8f3d3e2f6f9c1f0a3b6c8d8f6a" alt="clinic interior"/>
-        </div>
-      </div>
-    </section>
-
-    <footer class="site-footer">
-      <p>© <?= $year ?> Skin Medic. All rights reserved.</p>
-    </footer>
-  </main>
-
-</body>
-</html>
+      </
