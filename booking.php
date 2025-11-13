@@ -20,7 +20,7 @@ if (!$service_id) {
 }
 
 // ✅ Fetch user info
-$userQuery = $conn->query("SELECT firstName, lastName, email FROM users WHERE user_id = $user_id");
+$userQuery = $conn->query("SELECT firstName, lastName, email, contact FROM users WHERE user_id = $user_id");
 $user = $userQuery->fetch_assoc();
 
 // ✅ Fetch service info
@@ -32,9 +32,11 @@ $service = $result->fetch_assoc();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date = $_POST['appointment_date'];
     $time = $_POST['appointment_time'];
+    $contact = $_POST['contact'];
+    $notes = $_POST['notes'];
 
-    $stmt = $conn->prepare("INSERT INTO appointments (service_id, user_id, appointment_date, appointment_time) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("iiss", $service_id, $user_id, $date, $time);
+    $stmt = $conn->prepare("INSERT INTO appointments (service_id, user_id, appointment_date, appointment_time, contact, notes) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("iissss", $service_id, $user_id, $date, $time, $contact, $notes);
 
     if ($stmt->execute()) {
         echo "
@@ -96,11 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             `;
             document.head.appendChild(style);
 
-            // Wait for DOM to load
             document.addEventListener('DOMContentLoaded', () => {
                 const okBtn = document.getElementById('ok-btn');
                 okBtn.addEventListener('click', () => {
-                    window.location.href = 'patient_services.php';
+                    window.location.href = 'patient_page.php?section=services';
                 });
             });
         </script>
@@ -116,25 +117,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <title>Book Appointment</title>
     <style>
-        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f5f5; padding: 20px; }
         .container {
             max-width: 500px; margin: 50px auto; background: #fff;
-            padding: 25px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            padding: 25px; border-radius: 15px; box-shadow: 0 3px 8px rgba(0,0,0,0.1);
         }
-        h2 { text-align: center; margin-bottom: 20px; }
+        h2 { text-align: center; margin-bottom: 20px; color: #333; }
         form { display: flex; flex-direction: column; gap: 12px; }
-        input, select {
-            padding: 10px; border-radius: 8px; border: 1px solid #ccc;
+        input, textarea {
+            padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px;
         }
+        textarea { resize: none; height: 80px; }
         button {
             background: #80a833; color: #fff; border: none; border-radius: 8px;
-            padding: 10px; cursor: pointer;
+            padding: 10px; cursor: pointer; font-size: 15px;
         }
-        button:hover { background: #829b53; }
+        button:hover { background: #6f8e2d; }
         .back-btn {
-            display: block; text-align: center; margin-top: 10px;
-            color: #80a833; text-decoration: none;
+            display: block; text-align: center; margin-top: 15px;
+            color: #80a833; text-decoration: none; font-weight: 500;
         }
+        .back-btn:hover { text-decoration: underline; }
         .service-name {
             text-align: center; color: #333; font-weight: bold; margin-bottom: 10px;
         }
@@ -154,16 +157,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>Email</label>
             <input type="email" value="<?= htmlspecialchars($user['email']) ?>" readonly>
 
+            <label>Contact Number</label>
+            <input type="text" name="contact" value="<?= htmlspecialchars($user['contact'] ?? '') ?>" required>
+
             <label>Appointment Date</label>
             <input type="date" name="appointment_date" required>
 
             <label>Appointment Time</label>
             <input type="time" name="appointment_time" required>
 
+            <label>Additional Notes (optional)</label>
+            <textarea name="notes" placeholder="Any preferences or special requests?"></textarea>
+
             <button type="submit">Confirm Booking</button>
         </form>
 
-        <a href="patient_services.php" class="back-btn">← Back to Services</a>
+        <a href="patient_page.php?section=services" class="back-btn">← Back to Services</a>
     </div>
 </body>
 </html>
