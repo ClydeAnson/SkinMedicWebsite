@@ -19,24 +19,35 @@ if (!$service_id) {
     die("Error: No service ID provided.");
 }
 
-// Fetch user info
-$userQuery = $conn->query("SELECT firstName, lastName, email FROM users WHERE user_id = $user_id");
-$user = $userQuery->fetch_assoc();
+// Fetch user info (SAFE)
+$userStmt = $conn->prepare("SELECT firstName, lastName, email FROM users WHERE user_id = ?");
+$userStmt->bind_param("i", $user_id);
+$userStmt->execute();
+$user = $userStmt->get_result()->fetch_assoc();
 
-// Fetch service info
-$serviceQuery = $conn->query("SELECT * FROM services WHERE service_id = $service_id");
-$service = $serviceQuery->fetch_assoc();
+// Fetch service info (SAFE)
+$serviceStmt = $conn->prepare("SELECT * FROM services WHERE service_id = ?");
+$serviceStmt->bind_param("i", $service_id);
+$serviceStmt->execute();
+$service = $serviceStmt->get_result()->fetch_assoc();
+
+// Fetch doctors
+$doctorQuery = $conn->query("SELECT user_id, firstName, lastName FROM users WHERE role='doctor'");
 
 // Handle booking
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $doctor_id = intval($_POST['doctor_id']);
     $date = $_POST['appointment_date'];
     $time = $_POST['appointment_time'];
 
     $stmt = $conn->prepare("
-        INSERT INTO appointments (service_id, user_id, appointment_date, appointment_time)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO appointments 
+        (service_id, user_id, doctor_id, appointment_date, appointment_time, status, created_at)
+        VALUES (?, ?, ?, ?, ?, 'Pending', NOW())
     ");
-    $stmt->bind_param("iiss", $service_id, $user_id, $date, $time);
+
+    $stmt->bind_param("iiiss", $service_id, $user_id, $doctor_id, $date, $time);
 
     if ($stmt->execute()) {
         echo "
@@ -45,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             window.location.href = 'patient_services.php';
         </script>
         ";
+        exit();
     } else {
         echo "<script>alert('Error booking appointment.');</script>";
     }
@@ -56,11 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <title>Book Appointment</title>
     <style>
-        body {
-            font-family: Arial;
-            background: #f5f5f5;
-            padding: 20px;
-        }
+        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
         .container {
             max-width: 500px;
             margin: 50px auto;
@@ -70,11 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 3px 8px rgba(0,0,0,0.1);
         }
         h2 { text-align: center; }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        form { display: flex; flex-direction: column; gap: 12px; }
         input, select {
             padding: 10px;
             border-radius: 8px;
@@ -88,9 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 10px;
             cursor: pointer;
         }
-        button:hover {
-            background: #6f8e2d;
-        }
+        button:hover { background: #6f8e2d; }
         .service-name {
             text-align: center;
             font-weight: bold;
@@ -117,11 +119,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST">
+
         <label>Full Name</label>
         <input type="text" value="<?= htmlspecialchars($user['firstName'] . ' ' . $user['lastName']) ?>" readonly>
 
         <label>Email</label>
         <input type="email" value="<?= htmlspecialchars($user['email']) ?>" readonly>
+
+        <!-- NEW DOCTOR DROPDOWN -->
+        <label>Select Doctor</label>
+        <select name="doctor_id" required>
+            <option value="">Select Doctor</option>
+            <?php while ($doc = $doctorQuery->fetch_assoc()): ?>
+                <option value="<?= $doc['user_id'] ?>">
+                    Dr. <?= htmlspecialchars($doc['firstName'] . ' ' . $doc['lastName']) ?>
+                </option>
+            <?php endwhile; ?>
+        </select>
 
         <label>Appointment Date</label>
         <input type="date" name="appointment_date" id="appointment_date" required>
